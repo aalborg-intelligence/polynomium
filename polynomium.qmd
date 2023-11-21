@@ -1,10 +1,136 @@
 ---
-title: "Polynomium"
-format: html
+title: "Perceptroner og rødder"
+image: "images/antal_roedder.png"
+description: "Et andengradspolynomium kan have enten ingen, én eller to rødder -- og måske kan du ligefrem huske en metode til at bestemme antallet af rødder. Men kan man mon træne en perception, så den kan bestemme antallet af rødder i et andengradspolynomium? Det vil vi undersøge i dette forløb."
+date: ''
+format:
+    html: 
+      self-contained: true
+      toc: true
+      toc-title: Indhold
+      toc-location: left
+      related-formats-title: "Andre formater"
+reference-location: margin
+nocite: | 
+  @*
+editor_options: 
+  chunk_output_type: console
+crossref:
+  fig-prefix: figur   # (default is "Figure")
+  tbl-prefix: tabel    # (default is "Table")
+  exm-prefix: eksempel
+  thm-prefix: sætning
+  eq-prefix: ''
+  fig-title: Figur
+  exm-title: Eksempel
+  thm-title: Sætning
+  tbl-title: Tabel
+label:
+    fig: Figur
+fig-cap-location: margin
+tab-cap-location: margin
+tbl-cap-location: margin
+title-block-author-single: "Forfatter"
 server: shiny
 ---
 
-## Polynomium app i Quarto
+## Andengradspolynomier og rødder
+
+Lad os for en god ordens skyld minde om, at et andengradspolynomium er en funktion med en forskrift på formen
+$$
+f(x)=ax^2 + bx + c, \quad a \neq 0
+$$
+Grafen for et andengradspolynomium kaldes som bekendt for en *parabel*. I @fig-antal_roedder ses tre eksempler på sådanne parabler.
+
+![Graferne for tre forskellige andengradspolynomier.](images/antal_roedder.png){#fig-antal_roedder}
+
+Hvis vi løser andengradsligningen
+$$
+f(x)=ax^2 + bx + c=0
+$$
+finder vi andengradspolynomiets rødder. Men at løse $f(x)=0$, svarer netop til at bestemme, hvor den tilhørende parabel skærer $x$-aksen. I @fig-antal_roedder kan vi se, at den grønne parabel skærer $x$-aksen to steder. Det vil sige, at det tilhørende andengradspolynomium har to rødder. Den røde parabel skærer $x$-aksen ét sted -- det tilhørende andengradspolynomium har altså én rod. Endelig kan vi se, at den blå parabel slet ikke skærer $x$-aksen, og det tilhørende andengradspolynomium har derfor ingen rødder. 
+
+Du husker nok, hvordan man bestemmer antallet af rødder i et andengradspolynomium. Vi har brug for diskriminanten $d$:
+
+$$
+d = b^2-4ac
+$$ {#eq-d}
+
+Og der gælder så, at
+$$
+\begin{aligned}
+&d<0: \quad f \textrm{ har ingen rødder} \\
+&d=0: \quad f \textrm{ har én rod} \\
+&d>0: \quad f \textrm{ har to rødder} \\
+\end{aligned}
+$$
+
+Idéen er nu at undersøge, om vi kan få en perceptron til at lære[^1], hvor mange rødder et andengradspolynomium har alene ude fra de tre koefficienter $a$, $b$ og $c$ -- og helt uden at kende noget til diskriminantformlen i (@eq-d)!
+
+Inden vi går i gang, vil vi starte med at indse, at i stedet for at løse ligningen
+
+$$
+a x^2 + bx +c = 0
+$${#eq-andengradsligning}
+
+Så kan vi lige så godt løse en ligning på formen
+
+$$
+x^2 + bx +c =0
+$$
+hvor altså $a=1$. Det virker måske som en forsimpling, men da vi har antaget, at $a \neq 0$, så kan vi i ligningen i (@eq-andengradsligning) dividere igennem med $a$ og få
+
+$$
+\begin{aligned}
+\frac{a}{a} x^2 + \frac{b}{a} x + \frac{c}{a} &= \frac{0}{a} \quad \Leftrightarrow \\
+x^2 + \frac{b}{a} x + \frac{c}{a} &= 0
+\end{aligned}
+$$
+
+Det betyder, at når vi skal bestemme rødder i andengradspolynomier, så er det tilstrækkeligt, at betragte andengradspolynomier med en forskrift på formen
+
+$$
+f(x)=x^2+bx+c
+$$
+fordi man simpelthen bare tager sit oprindelige andengradspolynomium og dividerer igennem med $a$. Lad os illustrere det med et eksempel.
+
+:::{#exm-a=1}
+Betragt andengradspolynomiet med forskrift
+
+$$
+f(x)=-4x^2+8x+12
+$$
+Her har vi $a=-4, b=8$ og $c=12$. Løser vi ligningen $f(x)=0$, finder vi ud af, at $f$ har to rødder nemlig $-1$ og $3$. Dividerer vi forskriften for $f$ igennem med $a=-4$ fås et nyt andengradspolynomium $g$ med forskrift
+
+$$
+g(x)=x^2-2x-3
+$$
+Her er koefficienterne $a=1, b=-2$ og $c=-3$. Men $g$ har præcis samme rødder som $f$ -- nemlig $-1$ og $3$. Dette ses også illustreret i @fig-samme-roedder, hvor grafen for $f$ og $g$ begge skærer $x$-aksen i $-1$ og $3$.
+
+![Grafen for $f(x)=-4x^2+8x+12$ (den blå) og $g(x)=x^2-2x-3$ (den grønne), som begge skærer $x$-aksen samme sted. Det vil sige, at $f$ og $g$ har de samme rødder. I dette tilfælde $-1$ og $3$.](images/samme-roedder.png){#fig-samme-roedder}
+:::
+
+
+## Træningsdata
+
+Lad os komme i gang med at få trænet en perceptron! I dette eksempel vil vi nøjes med at træne en perceptron, så den forhåbentlig kan fortælle os om et givent andengradspolynomium enten har *ingen* eller *en eller to* rødder. Det svarer til, at vi ønsker en perceptron, som for en given parabel kan svare på, om parablen skærer $x$-aksen eller ej (og altså ikke hvor mange gange den eventuelt skærer $x$-aksen).
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Rødder eller ej?
+
+Overvej følgende:
+
++ Hvordan laver man et andengradspolynomium, der har én eller to rødder?
++ Hvordan laver man et andengradspolynomium, som ingen rødder har?
+
+:::
+
+For at træne en perceptron, skal perceptronen se en masse eksempler på forskellige andengradspolynomier (det vil her sige med forskellige værdier af $b$ og $c$) samtidig med, at vi fortæller perceptronen, om det tilhørende andengradspolynomium har rødder eller ej. At angive om et polynomium har rødder eller ej kalder man for en *targetværdi*. Tænk på det som en lille label du sætter på hvert eksempel, hvor du fortæller perceptronen, hvad det rigtige svar er -- *"det er altså det her, jeg gerne vil have, at du lærer!"*. Samlet set kalder man de forskellige eksempler inklusiv targetværdien for *træningsdata*.
+
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Træningsdata
+Indtast i det nedenstående forskellige værdier af $b$ og $c$ og angiv om det tilhørende andengradspolynomium har rødder eller ej. Tryk dernæst på knappen "Tilføj polynomium til træningsdata".
 
 ```{r message=FALSE}
 numericInput(
@@ -19,6 +145,37 @@ selectInput(
 )
 actionButton("add", "Tilføj polynomium til træningsdata")
 actionButton("deleteRows", "Slet markerede række(r)")
+DT::dataTableOutput("TBL1")
+```
+
+:::
+
+
+
+
+På figuren herunder ser du et punktplot af dine træningsdata. Ud af $1.$-aksen (det vi plejer at kalde for $x$-aksen), ser du størrelsen af koefficienten $b$ og op ad $2.$-aksen, ser du størrelsen af $c$. Punktet er farvet rødt, hvis det tilhørende andengradspolynomium har én eller to rødder og blåt, hvis det ikke har nogle rødder.
+
+
+```{r message=FALSE}
+plotOutput("pointPlot")
+```
+
+
+## Træning af perceptron
+
+Vi skal nu have trænet perceptronen. Perceptronen[^2] gør dybest set det, at den prøver at bestemme en ret linje, som kan bruges til at adskille de røde punkter fra de blå punkter i punktplottet ovenfor. En ret linje i et 2-dimensionalt koordinatsystem har helt generelt en ligning på formen
+
+$$
+w_0 + w_1 \cdot x + w_2 \cdot y = 0
+$$
+
+For at træne perceptronen skal vi starte med at angive nogle startværdier for de tre vægte $w_0, w_1$ og $w_2$. 
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Startværdier for vægte
+Vælg startværdier for de tre vægte og indtast dem herunder. Du bestemmer helt selv!
+
+```{r message=FALSE}
 numericInput("w0",
              withMathJax(helpText("$$\\textrm{Startvægt } w_{0}$$")),
              min = -100, max = 100, value = 0, step = .5
@@ -31,19 +188,167 @@ numericInput("w2",
              withMathJax(helpText("$$\\textrm{Startvægt } w_{2}$$")),
              min = -100, max = 100, value = 1, step = .5
 )
+```
+EGE: Tilføj en "Gem"-knap så eleven får en fornemmelse af, at de vægte, man har valgt, er blevet gemt.
+
+:::
+
+
+
+Når man træner en perceptron, gør man det ved hjælp af en algoritme, som løbende opdaterer vægtene $w_0, w_1$ og $w_2$, så den linje, vægtene giver, bliver bedre og bedre til at adskille de røde punkter fra de blå. Hver gang man opdaterer vægtene, siger man, at algoritmen har foretaget én iteration[^3]. Vi skal derfor have angivet, hvor mange gange algoritmen maksimalt skal opdatere vægtene -- ellers stopper den måske aldrig!   
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Antal iterationer
+Indtast det maksimale antal af iterationer her (eller behold det antal, som allerede står der).
+
+```{r}
 numericInput("maxit",
              "Maksimalt antal iterationer",
              min = 1, max = 10000, value = 500, step = 1
 )
+```
+EGE: Gem knap
+:::
+
+
+
+
+
+Endelig kan man skrue på, hvor meget vægtene skal opdateres i hver iteration. Måden, man gør det på, er ved at angive en *learning rate* (eller på dansk en *læringsrate*), som ofte kaldes for $\eta$ (udtales *eta*).  Hvis læringsraten er meget lille (tæt på $0$), så opdateres vægtene langsomt. Omvendt hvis læringsraten er meget stor, så kan opdateringerne blive så store, at man slet ikke finder frem til en linje, som kan bruges til at adskille de røde og blå punkter fra hinanden.
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Learning rate
+Indtast en læringsrate her (eller behold den værdi, som allerede står der).
+
+```{r}
 numericInput("rate",
              "Learning rate",
              min = 0.01, max = 1, value = 0.2, step = 0.01
 )
+```
+EGE: Gem-knap
+:::
+
+
+
+
+
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Træn perceptron
+Tryk nu på "Træn perception!" for at træne perceptronen.
+```{r}
+actionButton("run", "Træn perceptron!")
+#plotOutput("pointPlot")
+```
+EGE: Her skal vi have punktplottet igen og jeg vil også gerne have linjens ligning, så vægtene kan aflæses. Måske også med en angivelse af hvilken linje, der er udgangspunktet og hvilken perceptronen har lært. 
+
+::: 
+
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Hvor god er din perceptron? 
+
++ Finder perceptronen en linje, som kan adskille de røde punkter fra de blå? 
+
++ Afgør om følgende andengradspolynomier har rødder og tilføj dem til dit træningsdata:
+
+$$
+\begin{aligned}
+f_1(x) &= x^2 + 10x +26 \\
+f_2(x) &= x^2 + 10x + 24\\
+f_3(x) &= x^2 + 5x + 6\\
+f_4(x) &= x^2 + 5x + 7 \\
+f_5(x) &= x^2 + 2x + 1\\
+f_6(x) &= x^2 + 2x+2 \\
+\end{aligned}
+$$
+EGE: Mulighed for at tilføje til træningsdata her (de skal selv taste!)
+
++ Træn din perceptron på dit nye træningsdatasæt.
+
+EGE: Her skal man kunne indsætte flere træningseksempler og trykke på "Træn perceptron!" igen
+
+:::
+
+Som du netop har opdaget, er det en umulig opgave, vi har givet perceptronen! Vi kan ikke finde en ret linje, som i alle tilfælde kan bruges til at adskille de røde punkter fra de blå. Lad os se på hvorfor. Som tidligere nævnt har enhver ret linje en ligning på formen
+
+$$
+w_0 + w_1 \cdot x + w_2 \cdot y = 0
+$$
+Og for alle punkter på den ene side af linjen gælder, at
+
+$$
+w_0 + w_1 \cdot x + w_2 \cdot y > 0
+$$
+og for alle punkter på den anden side, at
+
+$$
+w_0 + w_1 \cdot x + w_2 \cdot y < 0
+$$
+
+I vores tilfælde har vi $b$-værdier ud af $x$-aksen og $c$-værdier op af $y$-aksen. Med de betegnelser bliver ligningen for en ret linje
+
+$$
+w_0 + w_1 \cdot b + w_2 \cdot c = 0
+$$ {#eq-ligning_bc}
+
+Her tænker vi altså på $b$ og $c$ som de variable.
+
+Vi husker nu på formlen for diskriminanten $d=b^2-4ac=b^2-4c$, da $a=1$ i vores eksempel. Skillelinjen for om andengradspolynomiet har ingen eller flere rødder, går netop ved $d=0$. Det vil sige
+
+$$
+b^2-4c =0
+$$ {#eq-d1}
+
+Men vi kan ikke finde nogle værdier af $w_0, w_1$ og $w_2$, så udtrykket i (@eq-ligning_bc) kommer til at svare til udtrykket i (@eq-d1). Det er fordi, at i (@eq-ligning_bc) indgår der kun et $b$, mens der i (@eq-d1) indgår et $b^2$. Denne observationer giver os imidlertidig også en løsning på vores problem. I stedet for at fodre perceptroner med forskellige værdier af $b$ og $c$, så giver vi den i stedet værdier af $b^2$ og $c$!
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Transformation
+
+Hvis du laver en markering ved "Tilføj transformation" og træner perceptronen igen, bruger du $b^2$ og $c$ som input i stedet for $b$ og $c$. Prøv det!
+
+```{r message=FALSE}
 actionButton("run", "Træn perceptron!")
 checkboxInput("sq", "Tilføj transformation")
-DT::dataTableOutput("TBL1")
-plotOutput("pointPlot")
+# plotOutput("pointPlot")
 ```
+EGE: Punktplot igen (men med $b^2$ på 1. aksen) og så skal vi bruge ligningen for linjen, som perceptronen finder.
+:::
+
+Nu kan perceptronen fint adskille de røde punkter fra de blå! Hurra!
+
+::: {.callout-note collapse="false" appearance="minimal"}
+### Hvor god er din perceptron nu? 
+
+Se på ligningen 
+$$
+b^2-4c =0
+$$ {#eq-d2}
+
+og sammenlign med 
+
+$$
+w_0 + w_1 \cdot b^2 + w_2 \cdot c = 0
+$$
+
+som svarer til den ligning perceptronen nu bruger til at afskille punkterne. 
+
++ Hvad skal værdien af $w_0, w_1$ og $w_2$ være for at få ligningen i (@eq-d2)? Lad os kalde disse værdier af vægtene for de *teoretiske værdier*.
+
+Se nu på outputtet fra den perceptron du lige har trænet.
+
++ Hvilken værdi af $w_0, w_1$ og $w_2$ har perceptronen fundet? Lad os kalde disse værdier af vægtene for de *trænede værdier*.
+
++ Hvis der ikke er overensstemmelse mellem de *teoretiske værdier* af vægtene og de *trænede værdier*, kan du så tilføje flere træningsdata, så de *trænede værdier*, som perceptronen finder, i højere grad svarer til de *teoretiske værdier*, som ligningen i (@eq-d2) giver? 
+
++ Tilføj flere træningsdata og træn perceptronen igen herunder.
+
+EGE: Mulighed for at udvide træningsdata og træne perceptronen igen.
+
+
+:::
+
 
 ```{r}
 #| context: server
@@ -165,3 +470,8 @@ output$pointPlot <- renderPlot({
   }
 })
 ```
+
+
+[^1]: Det er klart, at der er intet nyt under solen her. Vi kan jo bare selv beregne diskriminanten og svare på spørgsmålet. Men formålet er her, at lære lidt om hvad det vil sige at træne en perceptron i et tilfælde, hvor vi allerede selv kender svaret. Desuden findes der ingen lukkede løsningsformler for at bestemme rødder i et polynomium, så snart graden af polynomiet er $5$ eller derover. Så idéen kan generaliseres, og så er den måske slet ikke så tosset endda! 
+[^2]: Du kan læse meget mere om [perceptroner her](../perceptron/perceptron.qmd).
+[^3]: En iteration betyder en gentagelse.
