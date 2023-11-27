@@ -3,11 +3,15 @@
   "locale": "en_US",
   "platform": "4.3.2",
   "metadata": {
-    "appmode": "shiny",
-    "primary_rmd": null,
+    "appmode": "quarto-shiny",
+    "primary_rmd": "polynomium.qmd",
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
+  },
+  "quarto": {
+    "version": "1.3.353",
+    "engines": ["knitr"]
   },
   "packages": {
     "DBI": {
@@ -3372,9 +3376,6 @@
     }
   },
   "files": {
-    "app/app.R": {
-      "checksum": "fe11995a193f2bc05e9168a07586b566"
-    },
     "images/antal_roedder.ggb": {
       "checksum": "17331802699e7f7ec9480f702e8cd38e"
     },
