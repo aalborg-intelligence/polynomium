@@ -1,3 +1,6 @@
+## This R code was kindly supplied by Søren Højsgaard, Aalborg University.
+## © 2023 Søren Højsgaard <sorenh@math.aau.dk>
+
 fork <- function(x, wgt){
     z <- sum(x * wgt)
     if (z > 0) return(2) else return(1)
