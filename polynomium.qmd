@@ -188,8 +188,9 @@ numericInput("w2",
              withMathJax(helpText("$$\\textrm{Startvægt } w_{2}$$")),
              min = -100, max = 100, value = 1, step = .5
 )
+actionButton("save_w", "Gem vægte")
+textOutput("save_w_text")
 ```
-EGE: Tilføj en "Gem"-knap så eleven får en fornemmelse af, at de vægte, man har valgt, er blevet gemt.
 
 :::
 
@@ -206,8 +207,10 @@ numericInput("maxit",
              "Maksimalt antal iterationer",
              min = 1, max = 10000, value = 500, step = 1
 )
+actionButton("save_maxit", "Gem værdi")
+textOutput("save_maxit_text")
 ```
-EGE: Gem knap
+
 :::
 
 
@@ -225,8 +228,9 @@ numericInput("rate",
              "Learning rate",
              min = 0.01, max = 1, value = 0.2, step = 0.01
 )
+actionButton("save_rate", "Gem learning rate")
+textOutput("save_rate_text")
 ```
-EGE: Gem-knap
 :::
 
 
@@ -413,8 +417,24 @@ observeEvent(
   })
 
 observeEvent(
+  input$save_w,{
+    output$save_w_text <- renderText({"Vægte er gemt."})
+  })
+
+observeEvent(
+  input$save_maxit,{
+    output$save_maxit_text <- renderText({"Værdien er gemt."})
+  })
+
+observeEvent(
   input$rate,{
     rv$fit <- NULL
+    output$save_rate_text <- NULL
+  })
+
+observeEvent(
+  input$save_rate,{
+    output$save_rate_text <- renderText({"Learning rate er gemt."})
   })
 
 observeEvent(
