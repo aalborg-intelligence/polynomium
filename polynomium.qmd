@@ -95,7 +95,7 @@ $$
 fordi man simpelthen bare tager sit oprindelige andengradspolynomium og dividerer igennem med $a$. Lad os illustrere det med et eksempel.
 
 :::{#exm-a=1}
-Betragt andengradspolynomiet med forskrift
+Betragt andengradspolynomiet med forskriften
 
 $$
 f(x)=-4x^2+8x+12
@@ -113,7 +113,7 @@ Her er koefficienterne $a=1, b=-2$ og $c=-3$. Men $g$ har præcis samme rødder 
 
 ## Træningsdata
 
-Lad os komme i gang med at få trænet en perceptron! I dette eksempel vil vi nøjes med at træne en perceptron, så den forhåbentlig kan fortælle os om et givent andengradspolynomium enten har *ingen* eller *en eller to* rødder. Det svarer til, at vi ønsker en perceptron, som for en given parabel kan svare på, om parablen skærer $x$-aksen eller ej (og altså ikke hvor mange gange den eventuelt skærer $x$-aksen).
+Lad os komme i gang med at få trænet en perceptron! I dette eksempel vil vi nøjes med at træne en perceptron, så den forhåbentlig kan fortælle os, om et givent andengradspolynomium enten har *ingen* eller *en eller to* rødder. Det svarer til, at vi ønsker en perceptron, som for en given parabel kan svare på, om parablen skærer $x$-aksen eller ej (og altså ikke hvor mange gange den eventuelt skærer $x$-aksen).
 
 ::: {.callout-note collapse="false" appearance="minimal"}
 ### Rødder eller ej?
@@ -163,7 +163,7 @@ plotOutput("pointPlot")
 
 ## Træning af perceptron
 
-Vi skal nu have trænet perceptronen. Perceptronen[^2] gør dybest set det, at den prøver at bestemme en ret linje, som kan bruges til at adskille de røde punkter fra de blå punkter i punktplottet ovenfor. En ret linje i et 2-dimensionalt koordinatsystem har helt generelt en ligning på formen
+Vi skal nu have trænet perceptronen. Perceptronen[^2] gør dybest set det, at den prøver at bestemme en ret linje, som kan bruges til at adskille de røde punkter fra de blå punkter i punktplottet ovenfor. En ret linje i et 2-dimensionalt koordinatsystem har helt generelt en ligning på formen[^4]
 
 $$
 w_0 + w_1 \cdot x + w_2 \cdot y = 0
@@ -472,6 +472,7 @@ output$pointPlot <- renderPlot({
 ```
 
 
-[^1]: Det er klart, at der er intet nyt under solen her. Vi kan jo bare selv beregne diskriminanten og svare på spørgsmålet. Men formålet er her, at lære lidt om hvad det vil sige at træne en perceptron i et tilfælde, hvor vi allerede selv kender svaret. Desuden findes der ingen lukkede løsningsformler for at bestemme rødder i et polynomium, så snart graden af polynomiet er $5$ eller derover. Så idéen kan generaliseres, og så er den måske slet ikke så tosset endda! 
+[^1]: Det er klart, at der er intet nyt under solen her. Vi kan jo bare selv beregne diskriminanten og svare på spørgsmålet. Men formålet er her at lære lidt om, hvad det vil sige at træne en perceptron i et tilfælde, hvor vi allerede selv kender svaret. Desuden findes der ingen lukkede løsningsformler for at bestemme rødder i et polynomium, så snart graden af polynomiet er $5$ eller derover. Så idéen kan generaliseres, og så er den måske slet ikke så tosset endda! 
 [^2]: Du kan læse meget mere om [perceptroner her](../perceptron/perceptron.qmd).
 [^3]: En iteration betyder en gentagelse.
+[^4]: Du er nok vant til at møde linjens ligning på denne form: $a \cdot x+b \cdot y+c=0$. Skrivemåden, vi bruger her, er $w_0+w_1 \cdot x + w_2 \cdot y=0$. Det vil sige i forhold til den skrivemåde, som du kender, så er $w_0=c, w_1=a$ og $w_2=b$. 
