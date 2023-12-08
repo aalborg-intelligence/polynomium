@@ -143,8 +143,17 @@ selectInput(
   "rodder", "Har polynomiet rødder?",
   c("ja", "nej")
 )
+```
+
+```{r}
 actionButton("add", "Tilføj polynomium til træningsdata")
+```
+
+```{r}
 actionButton("deleteRows", "Slet markerede række(r)")
+```
+
+```{r}
 DT::dataTableOutput("TBL1")
 ```
 
@@ -157,7 +166,7 @@ På figuren herunder ser du et punktplot af dine træningsdata. Ud af $1.$-aksen
 
 
 ```{r message=FALSE}
-plotOutput("pointPlot")
+plotOutput("startPlot")
 ```
 
 
@@ -243,9 +252,13 @@ textOutput("save_rate_text")
 Tryk nu på "Træn perception!" for at træne perceptronen.
 ```{r}
 actionButton("run", "Træn perceptron!")
+textOutput("txt")
 #plotOutput("pointPlot")
 ```
-EGE: Her skal vi have punktplottet igen og jeg vil også gerne have linjens ligning, så vægtene kan aflæses. Måske også med en angivelse af hvilken linje, der er udgangspunktet og hvilken perceptronen har lært. 
+
+```{r message=FALSE}
+plotOutput("fitPlot")
+```
 
 ::: 
 
@@ -267,6 +280,7 @@ f_5(x) &= x^2 + 2x + 1\\
 f_6(x) &= x^2 + 2x+2 \\
 \end{aligned}
 $$
+
 EGE: Mulighed for at tilføje til træningsdata her (de skal selv taste!)
 
 + Træn din perceptron på dit nye træningsdatasæt.
@@ -305,7 +319,7 @@ $$
 b^2-4c =0
 $$ {#eq-d1}
 
-Men vi kan ikke finde nogle værdier af $w_0, w_1$ og $w_2$, så udtrykket i (@eq-ligning_bc) kommer til at svare til udtrykket i (@eq-d1). Det er fordi, at i (@eq-ligning_bc) indgår der kun et $b$, mens der i (@eq-d1) indgår et $b^2$. Denne observationer giver os imidlertidig også en løsning på vores problem. I stedet for at fodre perceptroner med forskellige værdier af $b$ og $c$, så giver vi den i stedet værdier af $b^2$ og $c$!
+Men vi kan ikke finde nogle værdier af $w_0, w_1$ og $w_2$, så udtrykket i (@eq-ligning_bc) kommer til at svare til udtrykket i (@eq-d1). Det er fordi, at i (@eq-ligning_bc) indgår der kun et $b$, mens der i (@eq-d1) indgår et $b^2$. Denne observation giver os imidlertidig også en løsning på vores problem. I stedet for at fodre perceptroner med forskellige værdier af $b$ og $c$, så giver vi den i stedet værdier af $b^2$ og $c$!
 
 ::: {.callout-note collapse="false" appearance="minimal"}
 ### Transformation
@@ -461,32 +475,31 @@ observeEvent(
                          rate = input$rate)
   })
 
-output$pointPlot <- renderPlot({
-  if(!input$sq){
-    p1 <- ggplot(rv$df, aes(x = b, y = c)) + 
-      geom_point(aes(color = rødder), size = 4)
-  } else{
-    p1 <- ggplot(rv$df, aes(x = b2, y = c)) + 
-      geom_point(aes(color = rødder), size = 4) +
-      labs(x = expression(b^2))
-  }
-  if(input$w2==0){
-    if(input$w1!=0){
-      p2 <- p1 + geom_vline(xintercept = -input$w0/input$w1, lty = 1)
-    } else{
-      p2 <- p1
-    }
-  } else{
-    p2 <- p1 + geom_abline(intercept = -input$w0/input$w2, slope = -input$w1/input$w2, lty = 1)
-  }
+source("helper_functions.R")
+
+output$startPlot <- renderPlot({
+  p1 <- pplot(rv$df, sq = input$sq)
+  p2 <- add_line(p1, c(input$w0, input$w1, input$w2))
+  p2
+})
+
+output$fitPlot <- renderPlot({
+  p1 <- pplot(rv$df, sq = input$sq)
+  p2 <- add_line(p1, c(input$w0, input$w1, input$w2), lty = 2, lwd = 1, col = 2)
   if(!is.null(rv$fit)){
-    if(rv$fit$wgt[3]==0){
-      p2 +  geom_vline(xintercept = -rv$fit$wgt[1]/rv$fit$wgt[2], lty = 2, lwd = 2)
-    } else{
-      p2 + geom_abline(intercept = -rv$fit$wgt[1]/rv$fit$wgt[3], slope = -rv$fit$wgt[2]/rv$fit$wgt[3], lty = 2, lwd = 2)
-    }
+    p2 <- add_line(p2, rv$fit$wgt, lty = 1, lwd = 2)
+  }
+  p2
+})
+  
+observe({
+  if(is.null(rv$fit)){
+    output$txt <- renderText("Perceptronen er ikke trænet på disse input. Tryk på knappen for at træne den.")
   } else{
-    p2
+    wgt <- round(rv$fit$wgt, 4)
+    run_txt <- paste0("er ", ifelse(rv$fit$e_sum>0, "ikke ", ""), "konvergeret.\n")
+    w_txt <- paste0("Slutvægtene er: w0 = ", wgt[1], ", w1 = ", wgt[2], " og w2 = ", wgt[3])
+    output$txt <- renderText(paste0("Perceptronen ", run_txt, w_txt))
   }
 })
 ```
