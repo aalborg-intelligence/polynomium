@@ -253,7 +253,6 @@ Tryk nu på "Træn perception!" for at træne perceptronen.
 ```{r}
 actionButton("run", "Træn perceptron!")
 textOutput("txt")
-#plotOutput("pointPlot")
 ```
 
 ```{r message=FALSE}
@@ -281,11 +280,38 @@ f_6(x) &= x^2 + 2x+2 \\
 \end{aligned}
 $$
 
-EGE: Mulighed for at tilføje til træningsdata her (de skal selv taste!)
+
+```{r message=FALSE}
+numericInput(
+  "b_2", "Koefficienten b", 0
+)
+numericInput(
+  "c_2", "Koefficienten c", 0
+)
+selectInput(
+  "rodder_2", "Har polynomiet rødder?",
+  c("ja", "nej")
+)
+```
+
+```{r}
+actionButton("add2", "Tilføj polynomium til træningsdata")
+```
+
+```{r}
+actionButton("deleteRows2", "Slet markerede række(r)")
+```
+
+```{r}
+DT::dataTableOutput("TBL2")
+```
 
 + Træn din perceptron på dit nye træningsdatasæt.
 
-EGE: Her skal man kunne indsætte flere træningseksempler og trykke på "Træn perceptron!" igen
+```{r}
+actionButton("run2", "Træn perceptron!")
+textOutput("txt2")
+```
 
 :::
 
@@ -327,11 +353,11 @@ Men vi kan ikke finde nogle værdier af $w_0, w_1$ og $w_2$, så udtrykket i (@e
 Hvis du laver en markering ved "Tilføj transformation" og træner perceptronen igen, bruger du $b^2$ og $c$ som input i stedet for $b$ og $c$. Prøv det!
 
 ```{r message=FALSE}
-actionButton("run", "Træn perceptron!")
+actionButton("run3", "Træn perceptron!")
 checkboxInput("sq", "Tilføj transformation")
-# plotOutput("pointPlot")
+textOutput("txt3")
+plotOutput("fitPlotSq")
 ```
-EGE: Punktplot igen (men med $b^2$ på 1. aksen) og så skal vi bruge ligningen for linjen, som perceptronen finder.
 :::
 
 Nu kan perceptronen fint adskille de røde punkter fra de blå! Hurra!
@@ -362,8 +388,35 @@ Se nu på outputtet fra den perceptron du lige har trænet.
 
 + Tilføj flere træningsdata og træn perceptronen igen herunder.
 
-EGE: Mulighed for at udvide træningsdata og træne perceptronen igen.
+```{r message=FALSE}
+numericInput(
+  "b_3", "Koefficienten b", 0
+)
+numericInput(
+  "c_3", "Koefficienten c", 0
+)
+selectInput(
+  "rodder_3", "Har polynomiet rødder?",
+  c("ja", "nej")
+)
+```
 
+```{r}
+actionButton("add3", "Tilføj polynomium til træningsdata")
+```
+
+```{r}
+actionButton("deleteRows3", "Slet markerede række(r)")
+```
+
+```{r}
+DT::dataTableOutput("TBL3")
+```
+
+```{r}
+actionButton("run4", "Træn perceptron!")
+textOutput("txt4")
+```
 
 :::
 
@@ -404,6 +457,54 @@ observeEvent(
 )
 
 observeEvent(
+  input$add2,
+  {
+    rv$fit <- NULL
+    # start with current data
+    if(!input$sq){
+      rv$df <- rv$df %>%
+        add_row(
+          b = isolate(input$b_2),
+          c = isolate(input$c_2),
+          rødder = isolate(input$rodder_2)
+        )
+    } else{
+      rv$df <- rv$df %>%
+        add_row(
+          b = isolate(input$b_2),
+          b2 = b^2,
+          c = isolate(input$c_2),
+          rødder = isolate(input$rodder_2)
+        )
+    }
+  }
+)
+
+observeEvent(
+  input$add3,
+  {
+    rv$fit <- NULL
+    # start with current data
+    if(!input$sq){
+      rv$df <- rv$df %>%
+        add_row(
+          b = isolate(input$b_3),
+          c = isolate(input$c_3),
+          rødder = isolate(input$rodder_3)
+        )
+    } else{
+      rv$df <- rv$df %>%
+        add_row(
+          b = isolate(input$b_3),
+          b2 = b^2,
+          c = isolate(input$c_3),
+          rødder = isolate(input$rodder_3)
+        )
+    }
+  }
+)
+
+observeEvent(
   input$deleteRows,{
     if (!is.null(input$TBL1_rows_selected)) {
       rv$fit <- NULL
@@ -411,7 +512,31 @@ observeEvent(
     }
   })
 
+observeEvent(
+  input$deleteRows2,{
+    if (!is.null(input$TBL2_rows_selected)) {
+      rv$fit <- NULL
+      rv$df <- rv$df[-as.numeric(input$TBL2_rows_selected), ]
+    }
+  })
+
+observeEvent(
+  input$deleteRows3,{
+    if (!is.null(input$TBL3_rows_selected)) {
+      rv$fit <- NULL
+      rv$df <- rv$df[-as.numeric(input$TBL3_rows_selected), ]
+    }
+  })
+
 output$TBL1 <- renderDataTable(
+  rv$df
+)
+
+output$TBL2 <- renderDataTable(
+  rv$df
+)
+
+output$TBL3 <- renderDataTable(
   rv$df
 )
 
@@ -475,6 +600,42 @@ observeEvent(
                          rate = input$rate)
   })
 
+observeEvent(
+  input$run2,{
+    X <- cbind(1, rv$df$b, rv$df$c)
+    if(input$sq){
+      X[,2] <- X[,2]^2
+    }
+    gr <- factor(rv$df$rødder)
+    rv$fit <- perceptron(X, gr, maxit = input$maxit, scale = FALSE, 
+                         wgt = c(input$w0, input$w1, input$w2), 
+                         rate = input$rate)
+  })
+
+observeEvent(
+  input$run3,{
+    X <- cbind(1, rv$df$b, rv$df$c)
+    if(input$sq){
+      X[,2] <- X[,2]^2
+    }
+    gr <- factor(rv$df$rødder)
+    rv$fit <- perceptron(X, gr, maxit = input$maxit, scale = FALSE, 
+                         wgt = c(input$w0, input$w1, input$w2), 
+                         rate = input$rate)
+  })
+
+observeEvent(
+  input$run4,{
+    X <- cbind(1, rv$df$b, rv$df$c)
+    if(input$sq){
+      X[,2] <- X[,2]^2
+    }
+    gr <- factor(rv$df$rødder)
+    rv$fit <- perceptron(X, gr, maxit = input$maxit, scale = FALSE, 
+                         wgt = c(input$w0, input$w1, input$w2), 
+                         rate = input$rate)
+  })
+
 source("helper_functions.R")
 
 output$startPlot <- renderPlot({
@@ -492,14 +653,25 @@ output$fitPlot <- renderPlot({
   p2
 })
   
+output$fitPlotSq <- renderPlot({
+  p1 <- pplot(rv$df, sq = input$sq)
+  p2 <- add_line(p1, c(input$w0, input$w1, input$w2), lty = 2, lwd = 1, col = 2)
+  if(!is.null(rv$fit)){
+    p2 <- add_line(p2, rv$fit$wgt, lty = 1, lwd = 2)
+  }
+  p2
+})
+  
 observe({
   if(is.null(rv$fit)){
-    output$txt <- renderText("Perceptronen er ikke trænet på disse input. Tryk på knappen for at træne den.")
+    output$txt <- output$txt2 <- output$txt3 <- output$txt4 <- 
+      renderText("Perceptronen er ikke trænet på disse input. Tryk på knappen for at træne den.")
   } else{
     wgt <- round(rv$fit$wgt, 4)
     run_txt <- paste0("er ", ifelse(rv$fit$e_sum>0, "ikke ", ""), "konvergeret.\n")
     w_txt <- paste0("Slutvægtene er: w0 = ", wgt[1], ", w1 = ", wgt[2], " og w2 = ", wgt[3])
-    output$txt <- renderText(paste0("Perceptronen ", run_txt, w_txt))
+    output$txt <- output$txt2 <- output$txt3 <- output$txt4 <- 
+      renderText(paste0("Perceptronen ", run_txt, w_txt))
   }
 })
 ```
